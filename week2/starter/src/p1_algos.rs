@@ -11,7 +11,20 @@
 ///
 /// Run `cargo test insort` to check your answers.
 pub fn insort(v: &mut Vec<i32>, n: i32) {
-  unimplemented!()
+    // how can one write this recursively?
+    let mut index = None;
+
+    for (i, &elt) in v.iter().enumerate() {
+        if n < elt {
+            index = Some(i);
+            break;
+        }
+    }
+
+    match index {
+        Some(index) => v.insert(index, n),
+        None => v.push(n),
+    }
 }
 
 type Node = i32;
@@ -31,32 +44,50 @@ type Node = i32;
 ///
 /// Run `cargo test connected` to check your answers.
 pub fn connected(edges: &[(&Node, &Node)], src: &Node, dst: &Node) -> bool {
-  unimplemented!()
+    /*
+    not sure if this algorithm is even close to right.
+    some questions:
+    - how do i use .iter() here instead of indexing?
+    - why do i have to do a return here instead of a simple (expr) without semicolon?
+    */
+    for i in 0..edges.len() {
+        let (from, to) = edges[i];
+
+        if std::ptr::eq(from, src) && std::ptr::eq(to, dst) {
+            return true;
+        } else if std::ptr::eq(from, src) {
+            return connected(edges, to, dst);
+        } else {
+            continue;
+        }
+    }
+
+    false
 }
 
 #[cfg(test)]
 mod test {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn insort_test() {
-    let mut v = vec![1, 5, 8];
+    #[test]
+    fn insort_test() {
+        let mut v = vec![1, 5, 8];
 
-    insort(&mut v, 0);
-    assert_eq!(v, vec![0, 1, 5, 8]);
+        insort(&mut v, 0);
+        assert_eq!(v, vec![0, 1, 5, 8]);
 
-    insort(&mut v, 3);
-    assert_eq!(v, vec![0, 1, 3, 5, 8]);
+        insort(&mut v, 3);
+        assert_eq!(v, vec![0, 1, 3, 5, 8]);
 
-    insort(&mut v, 9);
-    assert_eq!(v, vec![0, 1, 3, 5, 8, 9]);
-  }
+        insort(&mut v, 9);
+        assert_eq!(v, vec![0, 1, 3, 5, 8, 9]);
+    }
 
-  #[test]
-  fn connected_test() {
-    let nodes = vec![1, 1, 1];
-    let edges = vec![(&nodes[0], &nodes[1]), (&nodes[1], &nodes[2])];
-    assert!(connected(&edges, &nodes[0], &nodes[2]));
-    assert!(!connected(&edges, &nodes[2], &nodes[0]))
-  }
+    #[test]
+    fn connected_test() {
+        let nodes = vec![1, 1, 1];
+        let edges = vec![(&nodes[0], &nodes[1]), (&nodes[1], &nodes[2])];
+        assert!(connected(&edges, &nodes[0], &nodes[2]));
+        assert!(!connected(&edges, &nodes[2], &nodes[0]))
+    }
 }
