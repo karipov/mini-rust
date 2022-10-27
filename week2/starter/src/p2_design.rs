@@ -77,16 +77,17 @@ fn find_contains_test() {
 /// Then places a textual representation of the progress bar into `buf`.
 /// For example, at a progress of 20% with bracketed delimiters, the bar would be:
 ///   [==        ]
-pub fn fill_progress_bar(
+pub fn fill_progress_bar<'a>(
     // (1) buf could be a Vec<String>, &mut Vec<String> [question: does this mutably borrow, ref, or consume String?]
-    //     String, &mut String, &mut str, &mut char. I choose &mut char because I do not need to change the length
+    //     String, &mut String, &mut str, &mut [char], &mut [&str]. I choose &mut [&str] because I do not need to change the length
     //     of the string buffer I receive. Using a &mut str is confusing and gives me errors...
-    // (2) delims could be a String, &String, &str, &Vec<char>, &[char]. I choose &[char] because that seems
-    //     most reasonable from given
+    // (2) delims could be a String, &String, &str, &Vec<char>, &[char]. I choose &[&str; 2] because that seems
+    //     most reasonable given my type for buf above
     // (3) frac can be any f-type, i-type, u-type. I chose f32 for simplicity of programming,
     //     so percentages have to be represented as floats between 0 and 1 and can be easily multiplied
-    buf: &mut [char],
-    delims: &[char],
+    // keep getting lifetime errors??
+    buf: &mut [&'a str],
+    delims: &[&'a str; 2],
     frac: f32,
 )
 // No return value, since this function only mutates an input.
@@ -103,9 +104,9 @@ pub fn fill_progress_bar(
         } else {
             if num_to_fill > 0 {
                 num_to_fill -= 1;
-                '='
+                "="
             } else {
-                ' '
+                " "
             }
         }
     }
@@ -113,11 +114,11 @@ pub fn fill_progress_bar(
 
 #[test]
 fn test_fill_progress_bar() {
-    let mut bar = ['_', '_', '_', '_', '_', '_', '_'];
-    let mut big_bar = ['_'; 12];
+    let mut bar = ["_"; 7];
+    let mut big_bar = ["_"; 12];
 
-    fill_progress_bar(&mut bar, &['[', ']'], 0.2);
-    fill_progress_bar(&mut big_bar, &['{', '}'], 0.6);
+    fill_progress_bar(&mut bar, &["[", "]"], 0.2);
+    fill_progress_bar(&mut big_bar, &["{", "}"], 0.6);
 
     assert_eq!(String::from_iter(bar), String::from("[=    ]"));
     assert_eq!(String::from_iter(big_bar), String::from("{======    }"));
