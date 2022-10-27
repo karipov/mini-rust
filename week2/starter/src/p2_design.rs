@@ -79,22 +79,46 @@ fn find_contains_test() {
 ///   [==        ]
 pub fn fill_progress_bar(
     // (1) buf could be a Vec<String>, &mut Vec<String> [question: does this mutably borrow, ref, or consume String?]
-    //     String, &mut String, &mut str. I choose &mut str because I do not need to change the length
-    //     of the string buffer I receive. Knowing the size of the str is enough!
-    // (2) delims could be a String, &String, &str, char. I choose char because that seems simpler
-    //     than checking if str has only one character, using that, etc.
+    //     String, &mut String, &mut str, &mut char. I choose &mut char because I do not need to change the length
+    //     of the string buffer I receive. Using a &mut str is confusing and gives me errors...
+    // (2) delims could be a String, &String, &str, &Vec<char>, &[char]. I choose &[char] because that seems
+    //     most reasonable from given
     // (3) frac can be any f-type, i-type, u-type. I chose f32 for simplicity of programming,
-    //     so percentages have to be represented as floats between 0 and 1
-    buf: &mut &str,
-    delims: char,
+    //     so percentages have to be represented as floats between 0 and 1 and can be easily multiplied
+    buf: &mut [char],
+    delims: &[char],
     frac: f32,
 )
 // No return value, since this function only mutates an input.
 {
-    let chars_to_fill: u32 = (((buf.len() - 2) as f32) * frac) as u32;
+    let buf_len = buf.len();
+    let mut num_to_fill: u32 = (((buf_len - 2) as f32) * frac) as u32;
+    println!("n: {num_to_fill}");
+
+    for (i, a_char) in buf.iter_mut().enumerate() {
+        *a_char = if i == 0 {
+            delims[0]
+        } else if i == buf_len - 1 {
+            delims[1]
+        } else {
+            if num_to_fill > 0 {
+                num_to_fill -= 1;
+                '='
+            } else {
+                ' '
+            }
+        }
+    }
 }
 
 #[test]
 fn test_fill_progress_bar() {
-    /* Add your unit test here! */
+    let mut bar = ['_', '_', '_', '_', '_', '_', '_'];
+    let mut big_bar = ['_'; 12];
+
+    fill_progress_bar(&mut bar, &['[', ']'], 0.2);
+    fill_progress_bar(&mut big_bar, &['{', '}'], 0.6);
+
+    assert_eq!(String::from_iter(bar), String::from("[=    ]"));
+    assert_eq!(String::from_iter(big_bar), String::from("{======    }"));
 }
